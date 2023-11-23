@@ -4,10 +4,12 @@
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
+#include <time.h>
 
 const unsigned long MAX_NONCE = 4294967295;
+unsigned int nondet_uint(void);
 
-struct BlockHeader
+typedef struct BlockHeader
 {
     int version;
     char *prevBlockHash;
@@ -15,7 +17,7 @@ struct BlockHeader
     long timeStamp;
     char *bits; // Shortened representation of the target difficulty
     long nonce;
-};
+} BlockHeader;
 
 char *concatenateBlockHeader(const struct BlockHeader *block)
 {
@@ -286,13 +288,9 @@ char *SHA256(char *data)
 // End of SHA256 Implementation
 // ----------------------------
 
-unsigned int nondet_uint(void);
-
 int main()
 {
-    struct BlockHeader blockHeader;
-
-    // Initialize the fields of the struct
+    BlockHeader blockHeader;
     blockHeader.version = 1;
     blockHeader.prevBlockHash = "000000000001b2cdb438f6324a9311fae34aceff519333d1d11164ddaa87a409";
     blockHeader.merkleRoot = "9ac2659ba7ad885813586c2f47e3c3ad0987b31f974c8669a130ae753a43495c";
@@ -301,40 +299,40 @@ int main()
     blockHeader.nonce = 0;
 
     long nonce = 0;
-    long counter = 0;
-    while (counter < MAX_NONCE)
+    for(int i = 0; i < MAX_NONCE; i++)
     {
-        // TODO Non-det nonce pick 
-        counter++;
         nonce = nondet_uint();
         blockHeader.nonce = nonce;
         char *headerStr = concatenateBlockHeader(&blockHeader);
 
         char *hash = SHA256(SHA256(headerStr));
-        // char *hash = malloc(sizeof(char) * 64);
-        // printf("headerStr: %s\n", headerStr);
-        // if (nonce < MAX_NONCE/2)
-        // {
-        //     hash[0] = '0';
-        //     hash[1] = '0';
-        //     hash[2] = '2';
-        //     hash[3] = '5';
-        // }
-// TODO Implement assuming leading zeros based on Jonathans code
-#ifdef CBMC
-        __CPROVER_assume(hash[0] == '0' && hash[1] == '0');
-#endif
+
+        // Assume leading zeros -> CBMC will traverse only the paths that satisfy this assumption.
+        #ifdef CBMC
+            __CPROVER_assume(hash[0] == '0' && hash[1] == '0');
+        #endif
+
+        // Here we state that no valid nonce exists! If there's a valid nonce, the assertion will fail.
+        // printf("(int)hash[2]:%c - %d\n", hash[2], (int)hash[2]);
+        // int x = sprintf(hash[2], "%02x");
+        // printf("x: %d\n", x);
 
         int flag = 0;
-        if (hash[0] == '0' && hash[1] == '0') // TODO Try opposite check based on Jonathan's pseudocode..
-        {
+        if((int)hash[2] > 47) {
             flag = 1;
             printf("headerStr: %s\n", headerStr);
             printf("hash: %s\n", hash);
             printf("nonce: %li\n", nonce);
         }
+        // if (hash[0] != '0' || (hash[0] == '0' && hash[1] != '0'))
+        // {
+        //     flag = 1;
+        //     printf("headerStr: %s\n", headerStr);
+        //     printf("hash: %s\n", hash);
+        //     printf("nonce: %li\n", nonce);
+        // }
 
-        assert(flag == 0);
+        assert(flag == 1);
     }
 
     return 0;
