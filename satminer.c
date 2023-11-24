@@ -35,6 +35,26 @@ char *concatenateBlockHeader(const struct BlockHeader *block)
     return concatenated;
 }
 
+char *dummyHash(char *str)
+{
+    const unsigned int MULTIPLIER = 23;
+    // Convert the string to a numerical form (unsigned long long)
+    unsigned long long a = 0;
+    while (*str)
+    {
+        a = a * 10 + (*str++ - '0');
+    }
+    // Multiply by a constant
+    unsigned long long b = a * MULTIPLIER;
+
+    // Convert the unsigned long long to a hexadecimal string
+    char *c = (char *)malloc(65);
+    sprintf(c, "%lld", b);
+    printf("c: %s\n", c);
+
+    return c;
+}
+
 // int getSizeByInt(int num)
 // {
 //     if (num == 0)
@@ -305,7 +325,7 @@ int main()
         blockHeader.nonce = nonce;
         char *headerStr = concatenateBlockHeader(&blockHeader);
 
-        char *hash = SHA256(SHA256(headerStr));
+        char *hash = dummyHash(dummyHash(headerStr));
 
         // Assume leading zeros -> CBMC will traverse only the paths that satisfy this assumption.
         #ifdef CBMC
