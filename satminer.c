@@ -15,7 +15,7 @@ typedef struct BlockHeader
     char *prevBlockHash;
     char *merkleRoot;
     long timeStamp;
-    char *bits; // Shortened representation of the target difficulty
+    char *bits; // Shortened representation of the target difficulty.
     long nonce;
 } BlockHeader;
 
