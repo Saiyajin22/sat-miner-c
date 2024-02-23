@@ -18,7 +18,7 @@ int customStrlen(const char *str)
 const unsigned int MULTIPLIER = 23;
 
 char* dummyHash(char* str, int L) {
-    // Convert the string to a numerical form (unsigned long long).....
+    // Convert the string to a numerical form (unsigned long long).
     unsigned long long a = 0;
     // Here we use the ASCII table
     for(int i = 0; i < customStrlen(str); i++) {
